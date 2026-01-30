@@ -1,16 +1,16 @@
-# 🥜 Nutshell
+# 🥜 HandsFreeWeb
 
 > **Hands-free browsing powered by head tracking and Chrome Built-in AI**
 
-Nutshell makes the web accessible to everyone by combining computer vision-based head tracking with Chrome's Built-in AI to enable completely hands-free browsing and instant link summaries.
+HandsFreeWeb makes the web accessible to everyone by combining computer vision-based head tracking with Chrome's Built-in AI to enable completely hands-free browsing and instant link summaries.
 
-![Nutshell Banner](./screenshot.png)
+![HandsFreeWeb Banner](./screenshot.png)
 
 ---
 
 ## 🏆 Built for Chrome Built-in AI Hackathon
 
-Nutshell showcases the power of **Chrome's Built-in AI APIs** by bringing sophisticated, privacy-first accessibility directly into the browser. This project demonstrates real-world application of on-device AI to solve critical accessibility challenges.
+HandsFreeWeb showcases the power of **Chrome's Built-in AI APIs** by bringing sophisticated, privacy-first accessibility directly into the browser. This project demonstrates real-world application of on-device AI to solve critical accessibility challenges.
 
 ### 🎯 Chrome AI Features Utilized
 
@@ -79,7 +79,7 @@ const stream = session.promptStreaming(prompt);
 
 > **[📹 Watch the demo video](https://youtu.be/KVOM2VvWypE?si=3GpD8lM9ZrEP934)**
 
-See Nutshell in action - browse Wikipedia entirely hands-free and get AI-powered summaries with just head movements!
+See HandsFreeWeb in action - browse Wikipedia entirely hands-free and get AI-powered summaries with just head movements!
 
 ---
 
@@ -97,7 +97,7 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
 
 ## 💡 The Solution
 
-**Nutshell** solves both problems with two powerful features:
+**HandsFreeWeb** solves both problems with two powerful features:
 
 ### 1. 🎯 Complete Hands-Free Control
 
@@ -199,8 +199,8 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
 
 1. **Clone repository:**
    ```bash
-   git clone https://github.com/yourusername/nutshell.git
-   cd nutshell
+   git clone https://github.com/yourusername/handsfree-web.git
+   cd handsfree-web
    ```
 
 2. **Load extension:**
@@ -210,7 +210,7 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
    - Select the repository folder
 
 3. **Grant permissions:**
-   - Click Nutshell icon in toolbar
+   - Click HandsFreeWeb icon in toolbar
    - Allow camera access when prompted
    - Wait for models to load (~5-10 seconds)
 
@@ -221,7 +221,7 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
 ### First-Time Setup
 
 #### 1. **Enable Head Tracking**
-- Open Nutshell side panel (click extension icon)
+- Open HandsFreeWeb side panel (click extension icon)
 - Toggle **"Enable Head Tracking"**
 - Grant camera permission
 - Wait for face detection models to load
@@ -317,7 +317,7 @@ Page Load → Inject XHR Interceptor → Monitor Network Requests
 ## 📁 Project Structure
 
 ```
-nutshell/
+handsfree-web/
 ├── manifest.json              # Extension config (MV3)
 ├── background.js              # AI processing, job management
 ├── content.js                 # Link detection, tooltips
@@ -501,6 +501,6 @@ Built for the Chrome Built-in AI Hackathon! Contributions welcome:
 
 *Empowering digital independence through on-device AI*
 
-🥜 *In a nutshell: Browse hands-free, understand faster.*
+🥜 *In a handsfree-web: Browse hands-free, understand faster.*
 
 </div>

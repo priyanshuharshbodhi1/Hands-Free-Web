@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate 8-slide PowerPoint presentation for Nutshell - HackJNU4.0 Hackathon Submission
+Generate 8-slide PowerPoint presentation for HandsFreeWeb - HackJNU4.0 Hackathon Submission
 """
 
 from pptx import Presentation
@@ -17,7 +17,7 @@ prs.slide_width = Inches(13.333)
 prs.slide_height = Inches(7.5)
 
 # Colors
-PRIMARY = RGBColor(139, 69, 19)      # Brown (nutshell color)
+PRIMARY = RGBColor(139, 69, 19)      # Brown (neutral color)
 ACCENT = RGBColor(245, 166, 35)      # Orange/Gold
 DARK_BG = RGBColor(30, 30, 30)       # Dark background
 WHITE = RGBColor(255, 255, 255)
@@ -66,7 +66,7 @@ def add_title_slide(prs, title, subtitle):
     team_box = slide.shapes.add_textbox(Inches(1), Inches(5.8), Inches(11.333), Inches(0.6))
     team_tf = team_box.text_frame
     team_p = team_tf.paragraphs[0]
-    team_p.text = "HackJNU 4.0 | Team Nutshell"
+    team_p.text = "HackJNU 4.0 | Team HandsFreeWeb"
     team_p.font.size = Pt(20)
     team_p.font.color.rgb = RGBColor(180, 180, 180)
     team_p.alignment = PP_ALIGN.CENTER
@@ -137,7 +137,7 @@ def add_solution_slide(prs):
     title_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.35), Inches(12), Inches(0.8))
     title_tf = title_box.text_frame
     title_p = title_tf.paragraphs[0]
-    title_p.text = "💡 Our Solution: Nutshell"
+    title_p.text = "💡 Our Solution: HandsFreeWeb"
     title_p.font.size = Pt(40)
     title_p.font.bold = True
     title_p.font.color.rgb = WHITE
@@ -546,7 +546,7 @@ def add_thank_you_slide(prs):
     github_box = slide.shapes.add_textbox(Inches(1), Inches(5.4), Inches(11.333), Inches(0.6))
     github_tf = github_box.text_frame
     github_p = github_tf.paragraphs[0]
-    github_p.text = "📦 GitHub: github.com/priyanshuharshbodhi1/Nutshell"
+    github_p.text = "📦 GitHub: github.com/priyanshuharshbodhi1/HandsFreeWeb"
     github_p.font.size = Pt(22)
     github_p.font.color.rgb = WHITE
     github_p.alignment = PP_ALIGN.CENTER
@@ -564,9 +564,9 @@ def add_thank_you_slide(prs):
 
 
 # Create all slides
-print("Creating Nutshell Hackathon Presentation...")
+print("Creating HandsFreeWeb Hackathon Presentation...")
 
-add_title_slide(prs, "Nutshell", "Hands-free browsing powered by head tracking & Chrome AI")
+add_title_slide(prs, "HandsFreeWeb", "Hands-free browsing powered by head tracking & Chrome AI")
 add_problem_slide(prs)
 add_solution_slide(prs)
 add_features_slide(prs)
@@ -576,7 +576,7 @@ add_innovation_slide(prs)
 add_thank_you_slide(prs)
 
 # Save presentation
-output_path = '/home/priyanshu/repos/Nutshell/Nutshell_HackJNU4_Presentation.pptx'
+output_path = '/home/priyanshu/repos/HandsFreeWeb/HandsFreeWeb_HackJNU4_Presentation.pptx'
 prs.save(output_path)
 print(f"✅ Presentation saved to: {output_path}")
 print(f"📊 Total slides: {len(prs.slides)}")
