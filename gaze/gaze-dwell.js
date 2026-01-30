@@ -507,7 +507,11 @@
   }
 
   function snapLink(x, y) {
-    if (!smartFeaturesEnabled) return null; // PARAMETER (Disable magnetic snap if smart features off)
+    if (!smartFeaturesEnabled) {
+      // PARAMETER (Strict mode: No magnet, just what's under cursor)
+      const el = document.elementFromPoint(x, y);
+      return el ? el.closest('a,[role="link"]') : null;
+    }
     if (snappedLink && !document.contains(snappedLink)) {
       snappedLink = null;
     }
@@ -531,7 +535,24 @@
   }
 
   function snapTarget(x, y) {
-    if (!smartFeaturesEnabled) return null; // PARAMETER (Disable magnetic snap if smart features off)
+    if (!smartFeaturesEnabled) {
+      // PARAMETER (Strict mode: No magnet, just what's under cursor)
+      const el = document.elementFromPoint(x, y);
+      if (!el) return null;
+
+      // 1. Check Close Button
+      const closeBtn = el.closest(".gaze-tooltip-close-btn");
+      if (closeBtn && tooltipCloseBtn === closeBtn) {
+        return { element: closeBtn, type: "close-button", distance: 0 };
+      }
+
+      // 2. Check Link
+      const link = el.closest('a,[role="link"]');
+      if (link) {
+        return { element: link, type: "link", distance: 0 };
+      }
+      return null;
+    }
     // Check if current snapped target is still valid
     if (
       snappedTarget &&
