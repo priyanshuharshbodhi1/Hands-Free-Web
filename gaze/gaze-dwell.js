@@ -1,26 +1,26 @@
-(function() {
-  'use strict';
+(function () {
+  "use strict";
 
-  const POINT_EVENT = 'gaze:point';
-  const STATUS_EVENT = 'gaze:status';
-  const TOOLTIP_ID = 'gaze-summary-tooltip';
-  const TOOLTIP_STYLE_ID = 'gaze-summary-tooltip-styles';
+  const POINT_EVENT = "gaze:point";
+  const STATUS_EVENT = "gaze:status";
+  const TOOLTIP_ID = "gaze-summary-tooltip";
+  const TOOLTIP_STYLE_ID = "gaze-summary-tooltip-styles";
   const DEBUG_DWELL = true;
-  const DEFAULT_DWELL_MS = 600;
+  const DEFAULT_DWELL_MS = 600; // PARAMETER (Default time in ms to hover before auto-clicking)
   const RECENT_WINDOW_MS = 20000;
   const MAX_RECENT_ENTRIES = 32;
-  const EDGE_PAD_PX = 180;
+  const EDGE_PAD_PX = 180; // PARAMETER (Height of Top/Bottom scroll zones in pixels. Larger = larger scroll area)
   const EDGE_HOLD_MS = 400;
   const MAX_LINK_SCAN = 500;
   const DEADZONE_PX = 12;
-  const STICKY_RADIUS_PX = 45;
-  const SCROLL_ZONE_ID = 'gaze-scroll-zones';
-  const NAV_ZONE_WIDTH = 80; // Width of left/right navigation zones in pixels
-  const DWELL_INDICATOR_ID = 'gaze-dwell-indicator';
+  const STICKY_RADIUS_PX = 45; // PARAMETER (Magnet Strength - Distance in pixels to snap cursor to links. Larger = stronger magnet)
+  const SCROLL_ZONE_ID = "gaze-scroll-zones";
+  const NAV_ZONE_WIDTH = 80; // PARAMETER (Width of Left/Right navigation zones in pixels. Larger = easier to hit back/forward)
+  const DWELL_INDICATOR_ID = "gaze-dwell-indicator";
 
   let gazeEnabled = false;
   let dwellThreshold = DEFAULT_DWELL_MS;
-  let phase = 'ready';
+  let phase = "ready";
   let tooltip = null;
   let tooltipContent = null; // Content wrapper inside tooltip
   let tooltipCloseBtn = null; // Reference to close button for magnetic snap
@@ -46,10 +46,11 @@
     top: 0,
     bottom: 0,
     left: 0,
-    right: 0
+    right: 0,
   };
 
-  const processingMessage = '<div style="opacity:0.6;font-style:italic;">Generating summary...</div>';
+  const processingMessage =
+    '<div style="opacity:0.6;font-style:italic;">Generating summary...</div>';
 
   function ensureScrollZones() {
     // Check if zones exist AND are in the DOM
@@ -60,7 +61,7 @@
     if (!document.body) {
       return null;
     }
-    scrollZones = document.createElement('div');
+    scrollZones = document.createElement("div");
     scrollZones.id = SCROLL_ZONE_ID;
     scrollZones.style.cssText = `
       position: fixed;
@@ -69,8 +70,8 @@
       z-index: 2147483645;
     `;
 
-    const topZone = document.createElement('div');
-    topZone.id = 'gaze-scroll-top';
+    const topZone = document.createElement("div");
+    topZone.id = "gaze-scroll-top";
     topZone.style.cssText = `
       position: absolute;
       top: 0;
@@ -83,8 +84,8 @@
       transition: opacity 0.2s ease;
     `;
 
-    const bottomZone = document.createElement('div');
-    bottomZone.id = 'gaze-scroll-bottom';
+    const bottomZone = document.createElement("div");
+    bottomZone.id = "gaze-scroll-bottom";
     bottomZone.style.cssText = `
       position: absolute;
       bottom: 0;
@@ -98,8 +99,8 @@
     `;
 
     // Left navigation zone (Back) - Purple gradient
-    const leftZone = document.createElement('div');
-    leftZone.id = 'gaze-nav-left';
+    const leftZone = document.createElement("div");
+    leftZone.id = "gaze-nav-left";
     leftZone.style.cssText = `
       position: absolute;
       left: 0;
@@ -113,8 +114,8 @@
     `;
 
     // Right navigation zone (Forward) - Orange gradient
-    const rightZone = document.createElement('div');
-    rightZone.id = 'gaze-nav-right';
+    const rightZone = document.createElement("div");
+    rightZone.id = "gaze-nav-right";
     rightZone.style.cssText = `
       position: absolute;
       right: 0;
@@ -137,25 +138,27 @@
 
   function updateNavZoneVisibility(leftActive, rightActive) {
     if (!scrollZones) return;
-    const leftZone = document.getElementById('gaze-nav-left');
-    const rightZone = document.getElementById('gaze-nav-right');
+    const leftZone = document.getElementById("gaze-nav-left");
+    const rightZone = document.getElementById("gaze-nav-right");
     if (leftZone) {
-      leftZone.style.opacity = leftActive ? '1' : '0';
+      leftZone.style.opacity = leftActive ? "1" : "0";
     }
     if (rightZone) {
-      rightZone.style.opacity = rightActive ? '1' : '0';
+      rightZone.style.opacity = rightActive ? "1" : "0";
     }
   }
 
   function updateScrollZoneVisibility(topIntensity, bottomIntensity) {
     if (!scrollZones) return;
-    const topZone = document.getElementById('gaze-scroll-top');
-    const bottomZone = document.getElementById('gaze-scroll-bottom');
+    const topZone = document.getElementById("gaze-scroll-top");
+    const bottomZone = document.getElementById("gaze-scroll-bottom");
     if (topZone) {
-      topZone.style.opacity = topIntensity > 0.5 ? String(Math.min(1, topIntensity)) : '0';
+      topZone.style.opacity =
+        topIntensity > 0.5 ? String(Math.min(1, topIntensity)) : "0";
     }
     if (bottomZone) {
-      bottomZone.style.opacity = bottomIntensity > 0.5 ? String(Math.min(1, bottomIntensity)) : '0';
+      bottomZone.style.opacity =
+        bottomIntensity > 0.5 ? String(Math.min(1, bottomIntensity)) : "0";
     }
   }
 
@@ -163,7 +166,7 @@
     if (dwellIndicator) {
       return dwellIndicator;
     }
-    dwellIndicator = document.createElement('div');
+    dwellIndicator = document.createElement("div");
     dwellIndicator.id = DWELL_INDICATOR_ID;
     dwellIndicator.style.cssText = `
       position: fixed;
@@ -184,14 +187,14 @@
   function updateDwellIndicator(link, progress) {
     const indicator = ensureDwellIndicator();
     if (!link || progress <= 0) {
-      indicator.style.display = 'none';
+      indicator.style.display = "none";
       return;
     }
     const rect = link.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 
-    indicator.style.display = 'block';
+    indicator.style.display = "block";
     indicator.style.left = `${centerX - 4}px`;
     indicator.style.top = `${centerY - 4}px`;
 
@@ -201,7 +204,7 @@
 
   function hideDwellIndicator() {
     if (dwellIndicator) {
-      dwellIndicator.style.display = 'none';
+      dwellIndicator.style.display = "none";
     }
   }
 
@@ -209,7 +212,7 @@
     if (document.getElementById(TOOLTIP_STYLE_ID)) {
       return;
     }
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.id = TOOLTIP_STYLE_ID;
     style.textContent = `
       #${TOOLTIP_ID} {
@@ -292,22 +295,22 @@
     }
 
     ensureTooltipStyles();
-    tooltip = document.createElement('div');
+    tooltip = document.createElement("div");
     tooltip.id = TOOLTIP_ID;
 
     // Create content wrapper (so innerHTML changes don't remove close button)
-    tooltipContent = document.createElement('div');
-    tooltipContent.className = 'gaze-tooltip-content-wrapper';
+    tooltipContent = document.createElement("div");
+    tooltipContent.className = "gaze-tooltip-content-wrapper";
     tooltip.appendChild(tooltipContent);
 
     // Add close button
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'gaze-tooltip-close-btn';
-    closeBtn.innerHTML = '×';
-    closeBtn.title = 'Close (or dwell to click)';
-    closeBtn.setAttribute('data-gaze-clickable', 'true'); // Make it work with gaze dwell
-    closeBtn.setAttribute('data-is-close-button', 'true'); // Mark as close button for detection
-    closeBtn.addEventListener('click', (e) => {
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "gaze-tooltip-close-btn";
+    closeBtn.innerHTML = "×";
+    closeBtn.title = "Close (or dwell to click)";
+    closeBtn.setAttribute("data-gaze-clickable", "true"); // Make it work with gaze dwell
+    closeBtn.setAttribute("data-is-close-button", "true"); // Mark as close button for detection
+    closeBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       e.preventDefault();
       hideTooltip();
@@ -319,7 +322,7 @@
     tooltip.appendChild(closeBtn);
     tooltipCloseBtn = closeBtn; // Save reference for magnetic snap
 
-    tooltip.addEventListener('mouseenter', () => {
+    tooltip.addEventListener("mouseenter", () => {
       dwellAccum = 0;
     });
 
@@ -334,21 +337,21 @@
     }
     const tip = ensureTooltip();
     tooltipContent.innerHTML = html;
-    tip.style.display = 'block';
-    tip.style.opacity = '0';
+    tip.style.display = "block";
+    tip.style.opacity = "0";
     positionTooltip(link);
     requestAnimationFrame(() => {
-      tip.style.opacity = '1';
+      tip.style.opacity = "1";
     });
   }
 
   function hideTooltip() {
     if (!tooltip) return;
-    tooltip.style.opacity = '0';
+    tooltip.style.opacity = "0";
     setTimeout(() => {
       if (tooltip && tooltipContent) {
-        tooltip.style.display = 'none';
-        tooltipContent.innerHTML = '';
+        tooltip.style.display = "none";
+        tooltipContent.innerHTML = "";
       }
     }, 180);
   }
@@ -383,13 +386,17 @@
       return;
     }
     const threshold = Date.now() - RECENT_WINDOW_MS;
-    recentSummaries = new Map(Array.from(recentSummaries.entries()).filter(([_, ts]) => ts >= threshold));
+    recentSummaries = new Map(
+      Array.from(recentSummaries.entries()).filter(
+        ([_, ts]) => ts >= threshold,
+      ),
+    );
   }
 
   function shouldSkipUrl(url) {
     const lastTs = recentSummaries.get(url);
     if (!lastTs) return false;
-    return (Date.now() - lastTs) < RECENT_WINDOW_MS;
+    return Date.now() - lastTs < RECENT_WINDOW_MS;
   }
 
   function updateRecent(url) {
@@ -404,7 +411,7 @@
       const ctx = new AudioContextCtor();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.type = 'sine';
+      osc.type = "sine";
       osc.frequency.value = frequency;
       osc.connect(gain);
       gain.connect(ctx.destination);
@@ -421,7 +428,9 @@
 
   function nearestLink(x, y, maxDistance = 42) {
     const baseElement = document.elementFromPoint(x, y);
-    const immediate = baseElement ? baseElement.closest('a,[role="link"]') : null;
+    const immediate = baseElement
+      ? baseElement.closest('a,[role="link"]')
+      : null;
     if (immediate) {
       return immediate;
     }
@@ -448,7 +457,7 @@
 
   function nearestTarget(x, y, maxDistance = 42) {
     // Check close button first if tooltip is visible
-    if (tooltipCloseBtn && tooltip && tooltip.style.display === 'block') {
+    if (tooltipCloseBtn && tooltip && tooltip.style.display === "block") {
       const btnRect = tooltipCloseBtn.getBoundingClientRect();
       if (btnRect && btnRect.width > 0 && btnRect.height > 0) {
         const cx = btnRect.left + btnRect.width / 2;
@@ -456,7 +465,11 @@
         const dist = Math.hypot(cx - x, cy - y);
         // Use same maxDistance for consistency
         if (dist < maxDistance) {
-          return { element: tooltipCloseBtn, type: 'close-button', distance: dist };
+          return {
+            element: tooltipCloseBtn,
+            type: "close-button",
+            distance: dist,
+          };
         }
       }
     }
@@ -468,7 +481,7 @@
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
       const dist = Math.hypot(cx - x, cy - y);
-      return { element: link, type: 'link', distance: dist };
+      return { element: link, type: "link", distance: dist };
     }
 
     return null;
@@ -493,7 +506,7 @@
   }
 
   function snapLink(x, y) {
-    if (snappedLink && (!document.contains(snappedLink))) {
+    if (snappedLink && !document.contains(snappedLink)) {
       snappedLink = null;
     }
     if (snappedLink) {
@@ -517,7 +530,11 @@
 
   function snapTarget(x, y) {
     // Check if current snapped target is still valid
-    if (snappedTarget && snappedTarget.element && (!document.contains(snappedTarget.element))) {
+    if (
+      snappedTarget &&
+      snappedTarget.element &&
+      !document.contains(snappedTarget.element)
+    ) {
       snappedTarget = null;
     }
 
@@ -539,7 +556,7 @@
     if (next) {
       snappedTarget = next;
       // Also update lastSnapLink if it's a link
-      if (next.type === 'link') {
+      if (next.type === "link") {
         lastSnapLink = next.element;
       }
     }
@@ -553,16 +570,18 @@
     const now = performance.now();
     const w = window.innerWidth;
     const h = window.innerHeight;
-    const topIntensity = y < EDGE_PAD_PX ? 1 - (y / EDGE_PAD_PX) : 0;
-    const bottomIntensity = y > h - EDGE_PAD_PX ? (y - (h - EDGE_PAD_PX)) / EDGE_PAD_PX : 0;
-    const leftIntensity = x < EDGE_PAD_PX ? 1 - (x / EDGE_PAD_PX) : 0;
-    const rightIntensity = x > w - EDGE_PAD_PX ? (x - (w - EDGE_PAD_PX)) / EDGE_PAD_PX : 0;
+    const topIntensity = y < EDGE_PAD_PX ? 1 - y / EDGE_PAD_PX : 0;
+    const bottomIntensity =
+      y > h - EDGE_PAD_PX ? (y - (h - EDGE_PAD_PX)) / EDGE_PAD_PX : 0;
+    const leftIntensity = x < EDGE_PAD_PX ? 1 - x / EDGE_PAD_PX : 0;
+    const rightIntensity =
+      x > w - EDGE_PAD_PX ? (x - (w - EDGE_PAD_PX)) / EDGE_PAD_PX : 0;
 
     const intents = {
       top: topIntensity,
       bottom: bottomIntensity,
       left: leftIntensity,
-      right: rightIntensity
+      right: rightIntensity,
     };
 
     for (const key of Object.keys(intents)) {
@@ -571,11 +590,14 @@
         if (!edgeHold[key]) {
           edgeHold[key] = now;
         } else if (now - edgeHold[key] > EDGE_HOLD_MS) {
-          if (key === 'top') {
-            window.scrollBy({ top: -(120 + 360 * intensity), behavior: 'smooth' });
+          if (key === "top") {
+            window.scrollBy({
+              top: -(120 + 360 * intensity),
+              behavior: "smooth",
+            });
             beep(520, 120);
-          } else if (key === 'bottom') {
-            window.scrollBy({ top: 120 + 360 * intensity, behavior: 'smooth' });
+          } else if (key === "bottom") {
+            window.scrollBy({ top: 120 + 360 * intensity, behavior: "smooth" });
             beep(420, 120);
           }
           edgeHold[key] = now;
@@ -593,7 +615,7 @@
     const rect = target.getBoundingClientRect();
     const clientX = clamp(lastPointerX, rect.left, rect.right);
     const clientY = clamp(lastPointerY, rect.top, rect.bottom);
-    if (typeof target.focus === 'function') {
+    if (typeof target.focus === "function") {
       try {
         target.focus({ preventScroll: true });
       } catch (error) {
@@ -606,7 +628,7 @@
       clientX,
       clientY,
       button,
-      buttons: button === 2 ? 2 : 1
+      buttons: button === 2 ? 2 : 1,
     };
     const upInit = {
       bubbles: true,
@@ -614,28 +636,36 @@
       clientX,
       clientY,
       button,
-      buttons: 0
+      buttons: 0,
     };
 
-    ['pointerover', 'pointerenter', 'mousemove', 'pointerdown', 'mousedown'].forEach((type) => {
+    [
+      "pointerover",
+      "pointerenter",
+      "mousemove",
+      "pointerdown",
+      "mousedown",
+    ].forEach((type) => {
       target.dispatchEvent(new MouseEvent(type, downInit));
     });
-    ['mouseup', 'pointerup', 'click'].forEach((type) => {
+    ["mouseup", "pointerup", "click"].forEach((type) => {
       target.dispatchEvent(new MouseEvent(type, upInit));
     });
     if (button === 2) {
-      target.dispatchEvent(new MouseEvent('contextmenu', {
-        bubbles: true,
-        cancelable: true,
-        clientX,
-        clientY,
-        button: 2
-      }));
+      target.dispatchEvent(
+        new MouseEvent("contextmenu", {
+          bubbles: true,
+          cancelable: true,
+          clientX,
+          clientY,
+          button: 2,
+        }),
+      );
     }
   }
 
   function handlePointEvent(event) {
-    if (!gazeEnabled || phase !== 'live') {
+    if (!gazeEnabled || phase !== "live") {
       return;
     }
     const detail = event.detail || {};
@@ -650,21 +680,21 @@
 
     const { x, y } = applyDeadzone(rawX, rawY);
 
-    const ts = typeof detail.ts === 'number' ? detail.ts : performance.now();
+    const ts = typeof detail.ts === "number" ? detail.ts : performance.now();
 
     // Check if in navigation zones (left = back, right = forward)
     const inLeftZone = rawX < NAV_ZONE_WIDTH;
-    const inRightZone = rawX > (window.innerWidth - NAV_ZONE_WIDTH);
+    const inRightZone = rawX > window.innerWidth - NAV_ZONE_WIDTH;
 
     // Update navigation zone visibility
     updateNavZoneVisibility(inLeftZone, inRightZone);
 
     // Track navigation zone dwelling
-    if (inLeftZone && navZoneDwelling !== 'back') {
-      navZoneDwelling = 'back';
+    if (inLeftZone && navZoneDwelling !== "back") {
+      navZoneDwelling = "back";
       navDwellStart = ts;
-    } else if (inRightZone && navZoneDwelling !== 'forward') {
-      navZoneDwelling = 'forward';
+    } else if (inRightZone && navZoneDwelling !== "forward") {
+      navZoneDwelling = "forward";
       navDwellStart = ts;
     } else if (!inLeftZone && !inRightZone) {
       navZoneDwelling = null;
@@ -676,17 +706,24 @@
     const target = snapTarget(x, y);
     const targetElement = target ? target.element : null;
 
-    if (target && target.type === 'link') {
+    if (target && target.type === "link") {
       lastSnapLink = target.element;
     } else if (!target) {
       lastSnapLink = null;
     }
 
     if (DEBUG_DWELL) {
-      const href = (target && target.type === 'link' && target.element.href) ? target.element.href : null;
-      const label = target ? (target.type === 'close-button' ? '[CLOSE BUTTON]' : href) : null;
+      const href =
+        target && target.type === "link" && target.element.href
+          ? target.element.href
+          : null;
+      const label = target
+        ? target.type === "close-button"
+          ? "[CLOSE BUTTON]"
+          : href
+        : null;
       if (label !== debugLastHref) {
-        console.debug('[GazeDwell] target:', label);
+        console.debug("[GazeDwell] target:", label);
         debugLastHref = label;
       }
     }
@@ -710,13 +747,13 @@
       dwellAccum = 0;
       hideDwellIndicator();
 
-      if (target.type === 'close-button') {
+      if (target.type === "close-button") {
         // Close the tooltip
         hideTooltip();
         if (currentJob) {
           currentJob = null;
         }
-      } else if (target.type === 'link') {
+      } else if (target.type === "link") {
         // Trigger summary
         triggerSummary(target.element);
       }
@@ -744,7 +781,7 @@
     }
 
     updateRecent(url);
-    cancelActiveJob('replaced_by_new_link');
+    cancelActiveJob("replaced_by_new_link");
 
     requestSeq += 1;
     const requestId = requestSeq;
@@ -756,9 +793,9 @@
       id: requestId,
       url,
       element: link,
-      type: isYouTube ? 'youtube' : 'page',
+      type: isYouTube ? "youtube" : "page",
       videoId,
-      startedAt: Date.now()
+      startedAt: Date.now(),
     };
 
     showTooltipForLink(link, processingMessage);
@@ -769,9 +806,9 @@
     }
 
     handlePageSummary(url, link, requestId).catch((error) => {
-      console.error('[GazeDwell] Summary failed:', error);
+      console.error("[GazeDwell] Summary failed:", error);
       if (currentJob && currentJob.id === requestId) {
-        renderError('Unable to summarize this page.');
+        renderError("Unable to summarize this page.");
         clearCurrentJob();
       }
     });
@@ -781,15 +818,15 @@
     if (!currentJob) {
       return;
     }
-    if (currentJob.type === 'youtube' && currentJob.videoId) {
+    if (currentJob.type === "youtube" && currentJob.videoId) {
       try {
         chrome.runtime.sendMessage({
-          action: 'ABORT_YOUTUBE_SUMMARY',
+          action: "ABORT_YOUTUBE_SUMMARY",
           videoId: currentJob.videoId,
-          reason
+          reason,
         });
       } catch (error) {
-        console.warn('[GazeDwell] Failed to send abort message:', error);
+        console.warn("[GazeDwell] Failed to send abort message:", error);
       }
     }
     currentJob = null;
@@ -799,88 +836,101 @@
   async function handleYouTubeSummary(url, videoId, requestId) {
     try {
       const response = await sendMessagePromise({
-        action: 'GET_YOUTUBE_SUMMARY',
+        action: "GET_YOUTUBE_SUMMARY",
         videoId,
-        url
+        url,
       });
       if (!currentJob || currentJob.id !== requestId) {
         return;
       }
       if (!response) {
-        renderError('No response from background.');
+        renderError("No response from background.");
         clearCurrentJob();
         return;
       }
-      if (response.status === 'complete' && response.summary) {
+      if (response.status === "complete" && response.summary) {
         renderFinalSummary(response.summary);
         clearCurrentJob();
         return;
       }
-      if (response.status === 'aborted') {
-        renderError('Summary cancelled.');
+      if (response.status === "aborted") {
+        renderError("Summary cancelled.");
         clearCurrentJob();
         return;
       }
-      if (response.status === 'error') {
-        const message = response.message || response.error || 'Summary failed.';
+      if (response.status === "error") {
+        const message = response.message || response.error || "Summary failed.";
         renderError(message);
         clearCurrentJob();
         return;
       }
     } catch (error) {
       if (currentJob && currentJob.id === requestId) {
-        renderError(error && error.message ? error.message : 'Summary failed.');
+        renderError(error && error.message ? error.message : "Summary failed.");
         clearCurrentJob();
       }
     }
   }
 
   async function handlePageSummary(url, link, requestId) {
-    const fetchResponse = await sendMessagePromise({ type: 'FETCH_CONTENT', url });
+    const fetchResponse = await sendMessagePromise({
+      type: "FETCH_CONTENT",
+      url,
+    });
     if (currentJob && currentJob.id !== requestId) {
       return;
     }
     if (!fetchResponse || fetchResponse.error) {
-      const message = fetchResponse && fetchResponse.error ? fetchResponse.error : 'Unable to fetch page content.';
+      const message =
+        fetchResponse && fetchResponse.error
+          ? fetchResponse.error
+          : "Unable to fetch page content.";
       renderError(message);
       clearCurrentJob();
       return;
     }
 
-    const { title, textContent } = extractContent(fetchResponse.html, url, link);
+    const { title, textContent } = extractContent(
+      fetchResponse.html,
+      url,
+      link,
+    );
     renderProcessing();
 
     const summaryResponse = await sendMessagePromise({
-      type: 'SUMMARIZE_CONTENT',
+      type: "SUMMARIZE_CONTENT",
       url,
       title,
-      textContent
+      textContent,
     });
 
     if (!currentJob || currentJob.id !== requestId) {
       return;
     }
 
-    if (!summaryResponse || summaryResponse.status === 'error') {
-      const message = summaryResponse && summaryResponse.error ? summaryResponse.error : 'Failed to summarize content.';
+    if (!summaryResponse || summaryResponse.status === "error") {
+      const message =
+        summaryResponse && summaryResponse.error
+          ? summaryResponse.error
+          : "Failed to summarize content.";
       renderError(message);
       clearCurrentJob();
       return;
     }
 
-    if (summaryResponse.status === 'aborted') {
-      renderError('Summary cancelled.');
+    if (summaryResponse.status === "aborted") {
+      renderError("Summary cancelled.");
       clearCurrentJob();
       return;
     }
 
-    if (summaryResponse.status === 'complete' && summaryResponse.summary) {
+    if (summaryResponse.status === "complete" && summaryResponse.summary) {
       renderFinalSummary(summaryResponse.summary);
       clearCurrentJob();
       return;
     }
 
-    renderError('Summary unavailable.');
+    renderError("Summary unavailable.");
     clearCurrentJob();
   }
 
@@ -892,7 +942,7 @@
 
   function renderFinalSummary(summary) {
     if (!currentJob) return;
-    const html = formatAISummary(summary || '');
+    const html = formatAISummary(summary || "");
     showTooltipForLink(currentJob.element, html);
   }
 
@@ -903,7 +953,7 @@
 
   function renderError(message) {
     if (!currentJob) return;
-    const safe = escapeHtml(message || 'Something went wrong.');
+    const safe = escapeHtml(message || "Something went wrong.");
     const html = `<div style="padding:12px 14px;background:#fee2e2;border-radius:10px;color:#b91c1c;">${safe}</div>`;
     showTooltipForLink(currentJob.element, html);
   }
@@ -914,27 +964,38 @@
 
   function extractContent(html, url, link) {
     const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
+    const doc = parser.parseFromString(html, "text/html");
     const clone = doc.cloneNode(true);
     let title = doc.title || link.textContent || url;
-    let textContent = '';
+    let textContent = "";
 
     try {
       // eslint-disable-next-line no-undef
       const reader = new Readability(clone);
       const article = reader.parse();
-      if (article && article.textContent && article.textContent.trim().length > 120) {
+      if (
+        article &&
+        article.textContent &&
+        article.textContent.trim().length > 120
+      ) {
         title = article.title || title;
         textContent = article.textContent;
       }
     } catch (error) {
-      console.warn('[GazeDwell] Readability parse failed:', error);
+      console.warn("[GazeDwell] Readability parse failed:", error);
     }
 
     if (!textContent || textContent.trim().length < 80) {
-      const fallback = doc.querySelector('meta[name="description"]')?.getAttribute('content') ||
-        doc.querySelector('meta[property="og:description"]')?.getAttribute('content') || '';
-      textContent = fallback || link.textContent || 'No extractable content available.';
+      const fallback =
+        doc
+          .querySelector('meta[name="description"]')
+          ?.getAttribute("content") ||
+        doc
+          .querySelector('meta[property="og:description"]')
+          ?.getAttribute("content") ||
+        "";
+      textContent =
+        fallback || link.textContent || "No extractable content available.";
     }
 
     return { title, textContent };
@@ -942,9 +1003,9 @@
 
   function escapeHtml(text) {
     return String(text)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
   }
 
   function normalizeUrl(url) {
@@ -959,31 +1020,38 @@
     try {
       return new URL(url).hostname.toLowerCase();
     } catch (error) {
-      return '';
+      return "";
     }
   }
 
   function isYouTubeUrl(hostname) {
     if (!hostname) return false;
-    return hostname.includes('youtube.com') || hostname === 'youtu.be' || hostname.endsWith('.youtu.be');
+    return (
+      hostname.includes("youtube.com") ||
+      hostname === "youtu.be" ||
+      hostname.endsWith(".youtu.be")
+    );
   }
 
   function extractYouTubeVideoId(url) {
     try {
       const parsed = new URL(url);
-      if (parsed.hostname === 'youtu.be' || parsed.hostname.endsWith('.youtu.be')) {
-        const segments = parsed.pathname.split('/').filter(Boolean);
+      if (
+        parsed.hostname === "youtu.be" ||
+        parsed.hostname.endsWith(".youtu.be")
+      ) {
+        const segments = parsed.pathname.split("/").filter(Boolean);
         return segments[0] || null;
       }
-      if (parsed.searchParams.has('v')) {
-        return parsed.searchParams.get('v');
+      if (parsed.searchParams.has("v")) {
+        return parsed.searchParams.get("v");
       }
-      if (parsed.pathname.startsWith('/shorts/')) {
-        const parts = parsed.pathname.split('/').filter(Boolean);
+      if (parsed.pathname.startsWith("/shorts/")) {
+        const parts = parsed.pathname.split("/").filter(Boolean);
         return parts[1] || parts[0] || null;
       }
-      if (parsed.pathname.startsWith('/live/')) {
-        const parts = parsed.pathname.split('/').filter(Boolean);
+      if (parsed.pathname.startsWith("/live/")) {
+        const parts = parsed.pathname.split("/").filter(Boolean);
         return parts[1] || parts[0] || null;
       }
       return null;
@@ -998,7 +1066,7 @@
         chrome.runtime.sendMessage(payload, (response) => {
           const runtimeError = chrome.runtime.lastError;
           if (runtimeError) {
-            reject(new Error(runtimeError.message || 'Unknown runtime error'));
+            reject(new Error(runtimeError.message || "Unknown runtime error"));
             return;
           }
           resolve(response);
@@ -1013,38 +1081,43 @@
     if (!currentJob) {
       return;
     }
-    if (message.type === 'STREAMING_UPDATE') {
+    if (message.type === "STREAMING_UPDATE") {
       if (message.url && message.url === currentJob.url) {
         renderStreamUpdate(message.content);
       }
     }
-    if (message.type === 'PROCESSING_STATUS') {
-      if (message.url && currentJob && message.url === currentJob.url && message.status === 'started') {
+    if (message.type === "PROCESSING_STATUS") {
+      if (
+        message.url &&
+        currentJob &&
+        message.url === currentJob.url &&
+        message.status === "started"
+      ) {
         renderProcessing();
       }
     }
   }
 
   function handleStorageChange(changes, area) {
-    if (area !== 'local') return;
+    if (area !== "local") return;
     if (changes.gazeEnabled) {
       gazeEnabled = Boolean(changes.gazeEnabled.newValue);
       if (!gazeEnabled) {
-        cancelActiveJob('feature_disabled');
+        cancelActiveJob("feature_disabled");
       }
     }
     if (changes.gazeDwellMs) {
       const value = changes.gazeDwellMs.newValue;
-      if (typeof value === 'number' && value >= 200) {
+      if (typeof value === "number" && value >= 200) {
         dwellThreshold = value;
       }
     }
   }
 
   function handleKeydown(event) {
-    if (event.key === 'Escape' && currentJob) {
+    if (event.key === "Escape" && currentJob) {
       event.preventDefault();
-      cancelActiveJob('user_cancelled');
+      cancelActiveJob("user_cancelled");
     }
   }
 
@@ -1054,9 +1127,13 @@
     }
   }
 
-  window.addEventListener('blink:click', (event) => {
-    const button = event && event.detail && event.detail.button === 'right' ? 2 : 0;
-    const target = lastSnapLink || nearestLink(lastPointerX, lastPointerY) || document.elementFromPoint(lastPointerX, lastPointerY);
+  window.addEventListener("blink:click", (event) => {
+    const button =
+      event && event.detail && event.detail.button === "right" ? 2 : 0;
+    const target =
+      lastSnapLink ||
+      nearestLink(lastPointerX, lastPointerY) ||
+      document.elementFromPoint(lastPointerX, lastPointerY);
     if (!target) {
       beep(280, 140);
       return;
@@ -1066,7 +1143,7 @@
   });
 
   // Smile-to-click: trigger click on magnetically snapped target when user smiles
-  window.addEventListener('smile:click', (event) => {
+  window.addEventListener("smile:click", (event) => {
     // Priority 1: Check if dwelling in navigation zone
     if (navZoneDwelling) {
       const now = performance.now();
@@ -1074,14 +1151,14 @@
 
       // Require at least 300ms dwell before confirming navigation
       if (dwellDuration >= 300) {
-        if (navZoneDwelling === 'back') {
+        if (navZoneDwelling === "back") {
           window.history.back();
           beep(400, 100); // Low beep for back
-          console.debug('[GazeDwell] Navigate BACK via mouth click');
-        } else if (navZoneDwelling === 'forward') {
+          console.debug("[GazeDwell] Navigate BACK via mouth click");
+        } else if (navZoneDwelling === "forward") {
           window.history.forward();
           beep(800, 100); // High beep for forward
-          console.debug('[GazeDwell] Navigate FORWARD via mouth click');
+          console.debug("[GazeDwell] Navigate FORWARD via mouth click");
         }
         navZoneDwelling = null;
         navDwellStart = 0;
@@ -1090,13 +1167,16 @@
     }
 
     // Priority 2: Click on snapped target or nearest link
-    const target = lastSnapLink || nearestLink(lastPointerX, lastPointerY) || document.elementFromPoint(lastPointerX, lastPointerY);
+    const target =
+      lastSnapLink ||
+      nearestLink(lastPointerX, lastPointerY) ||
+      document.elementFromPoint(lastPointerX, lastPointerY);
     if (!target) {
-      beep(280, 140);  // Error beep if no target
+      beep(280, 140); // Error beep if no target
       return;
     }
-    synthClick(target, 0);  // Left click only (button = 0)
-    beep(660, 150);  // Higher pitch beep for smile click (distinguishable from blink)
+    synthClick(target, 0); // Left click only (button = 0)
+    beep(660, 150); // Higher pitch beep for smile click (distinguishable from blink)
     console.debug(`[GazeDwell] Smile click executed on:`, target);
   });
 
@@ -1107,87 +1187,93 @@
     window.addEventListener(STATUS_EVENT, (event) => {
       const detail = event.detail || {};
       phase = detail.phase || phase;
-      if (phase !== 'live') {
+      if (phase !== "live") {
         dwellAccum = 0;
       }
     });
-    window.addEventListener('gaze:calibration-started', () => {
+    window.addEventListener("gaze:calibration-started", () => {
       // Forcibly hide tooltip during calibration (both active and completed)
-      cancelActiveJob('calibration_started');
+      cancelActiveJob("calibration_started");
       hideTooltip();
-      console.debug('[GazeDwell] Tooltip forcibly hidden for calibration');
+      console.debug("[GazeDwell] Tooltip forcibly hidden for calibration");
     });
-    window.addEventListener('gaze:calibration-stopped', () => {
+    window.addEventListener("gaze:calibration-stopped", () => {
       // Tooltip will naturally reappear when user looks at links
-      console.debug('[GazeDwell] Calibration ended, tooltip can reappear');
+      console.debug("[GazeDwell] Calibration ended, tooltip can reappear");
     });
     chrome.runtime.onMessage.addListener(handleRuntimeMessage);
     chrome.storage.onChanged.addListener(handleStorageChange);
-    document.addEventListener('keydown', handleKeydown, true);
-    window.addEventListener('scroll', handleScroll, true);
-    window.addEventListener('resize', handleScroll);
+    document.addEventListener("keydown", handleKeydown, true);
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleScroll);
 
-    chrome.storage.local.get(['gazeEnabled', 'gazeDwellMs'], (result) => {
+    chrome.storage.local.get(["gazeEnabled", "gazeDwellMs"], (result) => {
       gazeEnabled = Boolean(result && result.gazeEnabled);
-      const dwell = result && typeof result.gazeDwellMs === 'number' ? result.gazeDwellMs : DEFAULT_DWELL_MS;
+      const dwell =
+        result && typeof result.gazeDwellMs === "number"
+          ? result.gazeDwellMs
+          : DEFAULT_DWELL_MS;
       dwellThreshold = dwell >= 200 ? dwell : DEFAULT_DWELL_MS;
     });
   }
 
   function formatAISummary(text) {
-    if (!text) return '';
+    if (!text) return "";
 
     let formatted = text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
 
     formatted = formatted
-      .replace(/^### (.+)$/gm, '<h4>$1</h4>')
-      .replace(/^## (.+)$/gm, '<h3>$1</h3>')
-      .replace(/^# (.+)$/gm, '<h2>$1</h2>');
+      .replace(/^### (.+)$/gm, "<h4>$1</h4>")
+      .replace(/^## (.+)$/gm, "<h3>$1</h3>")
+      .replace(/^# (.+)$/gm, "<h2>$1</h2>");
 
     formatted = formatted
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/__(.+?)__/g, '<strong>$1</strong>');
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/__(.+?)__/g, "<strong>$1</strong>");
 
     formatted = formatted
-      .replace(/\*([^\*\s][^\*]*?[^\*\s])\*/g, '<em>$1</em>')
-      .replace(/_([^_\s][^_]*?[^_\s])_/g, '<em>$1</em>');
+      .replace(/\*([^\*\s][^\*]*?[^\*\s])\*/g, "<em>$1</em>")
+      .replace(/_([^_\s][^_]*?[^_\s])_/g, "<em>$1</em>");
 
-    formatted = formatted
-      .replace(/^[\*-•] (.+)$/gm, '<li>$1</li>');
+    formatted = formatted.replace(/^[\*-•] (.+)$/gm, "<li>$1</li>");
 
-    formatted = formatted
-      .replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+    formatted = formatted.replace(/^\d+\. (.+)$/gm, "<li>$1</li>");
 
-    formatted = formatted
-      .replace(/(<li>.*?<\/li>\n?)+/g, (match) => {
-        return '<ul>' + match.replace(/\n/g, '') + '</ul>';
-      });
+    formatted = formatted.replace(/(<li>.*?<\/li>\n?)+/g, (match) => {
+      return "<ul>" + match.replace(/\n/g, "") + "</ul>";
+    });
 
-    formatted = formatted
-      .replace(/\n\n+/g, '</p><p>');
+    formatted = formatted.replace(/\n\n+/g, "</p><p>");
 
-    formatted = formatted
-      .replace(/\n/g, '<br>');
+    formatted = formatted.replace(/\n/g, "<br>");
 
-    if (!formatted.startsWith('<h') && !formatted.startsWith('<ul') && !formatted.startsWith('<p>')) {
-      formatted = '<p>' + formatted;
+    if (
+      !formatted.startsWith("<h") &&
+      !formatted.startsWith("<ul") &&
+      !formatted.startsWith("<p>")
+    ) {
+      formatted = "<p>" + formatted;
     }
-    if (!formatted.endsWith('</p>') && !formatted.endsWith('</ul>') && !formatted.endsWith('</h2>') && !formatted.endsWith('</h3>') && !formatted.endsWith('</h4>')) {
-      formatted = formatted + '</p>';
+    if (
+      !formatted.endsWith("</p>") &&
+      !formatted.endsWith("</ul>") &&
+      !formatted.endsWith("</h2>") &&
+      !formatted.endsWith("</h3>") &&
+      !formatted.endsWith("</h4>")
+    ) {
+      formatted = formatted + "</p>";
     }
 
-    formatted = formatted
-      .replace(/<p><\/p>/g, '')
-      .replace(/<p>\s*<\/p>/g, '');
+    formatted = formatted.replace(/<p><\/p>/g, "").replace(/<p>\s*<\/p>/g, "");
 
     formatted = formatted
-      .replace(/<p>(<h\d>)/g, '$1')
-      .replace(/(<\/h\d>)<\/p>/g, '$1')
-      .replace(/<p>(<ul>)/g, '$1')
-      .replace(/(<\/ul>)<\/p>/g, '$1');
+      .replace(/<p>(<h\d>)/g, "$1")
+      .replace(/(<\/h\d>)<\/p>/g, "$1")
+      .replace(/<p>(<ul>)/g, "$1")
+      .replace(/(<\/ul>)<\/p>/g, "$1");
 
     return formatted;
   }

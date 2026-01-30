@@ -6,14 +6,14 @@
   const GAZE_ENABLED_KEY = "gazeEnabled";
   const HEAD_CAL_STORAGE_KEY = "headCalV2";
   const EAR_CAL_STORAGE_KEY = "earCalV2";
-  const DEFAULT_DWELL_MS = 600;
+  const DEFAULT_DWELL_MS = 600; // PARAMETER (Default time in ms to hover before auto-clicking)
   const HUMAN_MODULE_PATH = "gaze/human/human.esm.js";
   const HUMAN_MODELS_DIR = "gaze/human/models/";
   const POINT_THROTTLE_MS = 33;
-  const HEAD_FILTER_MIN_CUTOFF = 0.4; // Reduced from 0.8 for more smoothing
+  const HEAD_FILTER_MIN_CUTOFF = 0.4; // PARAMETER (Jitter reduction - Lower value (e.g. 0.1) = smoother but more lag. Higher (e.g. 1.0) = responsive but jittery)
   const HEAD_FILTER_BETA = 0.0025;
   const HEAD_FILTER_D_CUTOFF = 1.0;
-  const HEAD_POINTER_LERP = 0.25; // Increased for faster cursor response
+  const HEAD_POINTER_LERP = 0.3; // PARAMETER (Cursor responsiveness - Higher value (e.g. 0.5) = faster response. Lower (e.g. 0.1) = smoother)
   const HEAD_TRANSLATION_GAIN = 1;
   const HEAD_ROTATION_INFLUENCE = 0.22;
   const HEAD_ROTATION_EDGE_GAIN = 0.35;
@@ -24,12 +24,12 @@
   const PITCH_FALLBACK_THRESHOLD = 0.32;
   const TRANSLATION_MIN_RATIO = 0.24;
   const VERTICAL_EDGE_SCALE = 1.35;
-  const HEAD_YAW_SCALE = 50; // Doubled for 2x horizontal speed
-  const HEAD_PITCH_SCALE = 40; // Doubled for 2x vertical speed
+  const HEAD_YAW_SCALE = 12; // PARAMETER (Horizontal Sensitivity - Lower value = FASTER movement. 12 = Very fast)
+  const HEAD_PITCH_SCALE = 9; // PARAMETER (Vertical Sensitivity - Lower value = FASTER movement. 9 = Very fast)
   const BLINK_LEFT_THRESHOLD_MS = 1000;
   const BLINK_RIGHT_THRESHOLD_MS = 2000;
   const MOUTH_CALIBRATION_SAMPLES = 30; // Samples to collect for mouth calibration
-  const MOUTH_OPEN_COOLDOWN_MS = 800; // Prevent multiple clicks from sustained open mouth
+  const MOUTH_OPEN_COOLDOWN_MS = 800; // PARAMETER (Cooldown in ms between mouth clicks to prevent double-clicking)
   const BLINK_RELEASE_EVENT = "blink:released";
   const EAR_OPEN_SAMPLES_REQUIRED = 60;
   const EAR_CLOSED_COLLECTION_MS = 700;
