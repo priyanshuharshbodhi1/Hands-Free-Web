@@ -10,10 +10,10 @@
   const HUMAN_MODULE_PATH = "gaze/human/human.esm.js";
   const HUMAN_MODELS_DIR = "gaze/human/models/";
   const POINT_THROTTLE_MS = 33;
-  const HEAD_FILTER_MIN_CUTOFF = 0.4; // PARAMETER (Jitter reduction - Lower value (e.g. 0.1) = smoother but more lag. Higher (e.g. 1.0) = responsive but jittery)
+  const HEAD_FILTER_MIN_CUTOFF = 1.5; // PARAMETER (Jitter reduction - Higher = MOST responsive. 1.5 = Instant/Raw)
   const HEAD_FILTER_BETA = 0.0025;
   const HEAD_FILTER_D_CUTOFF = 1.0;
-  const HEAD_POINTER_LERP = 0.3; // PARAMETER (Cursor responsiveness - Higher value (e.g. 0.5) = faster response. Lower (e.g. 0.1) = smoother)
+  const HEAD_POINTER_LERP = 0.6; // PARAMETER (Cursor responsiveness - 0.6 = Very fast/Instant. Less smooth but responsive)
   const HEAD_TRANSLATION_GAIN = 1;
   const HEAD_ROTATION_INFLUENCE = 0.22;
   const HEAD_ROTATION_EDGE_GAIN = 0.35;
@@ -24,8 +24,8 @@
   const PITCH_FALLBACK_THRESHOLD = 0.32;
   const TRANSLATION_MIN_RATIO = 0.24;
   const VERTICAL_EDGE_SCALE = 1.35;
-  const HEAD_YAW_SCALE = 12; // PARAMETER (Horizontal Sensitivity - Lower value = FASTER movement. 12 = Very fast)
-  const HEAD_PITCH_SCALE = 9; // PARAMETER (Vertical Sensitivity - Lower value = FASTER movement. 9 = Very fast)
+  const HEAD_YAW_SCALE = 10; // PARAMETER (Horizontal Sensitivity - 10 = Ultra sensitive)
+  const HEAD_PITCH_SCALE = 8; // PARAMETER (Vertical Sensitivity - 8 = Ultra sensitive)
   const BLINK_LEFT_THRESHOLD_MS = 1000;
   const BLINK_RIGHT_THRESHOLD_MS = 2000;
   const MOUTH_CALIBRATION_SAMPLES = 30; // Samples to collect for mouth calibration

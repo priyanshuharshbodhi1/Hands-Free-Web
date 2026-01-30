@@ -9,6 +9,7 @@ let settings = {
   displayMode: "tooltip",
   gazeEnabled: false,
   gazeDwellMs: 600,
+  smartFeaturesEnabled: true, // PARAMETER (Default state for Smart Features)
 };
 
 let currentContent = {
@@ -62,6 +63,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     elements.mouthStatusText = document.getElementById("mouth-status-text");
     elements.calibrateMouthBtn = document.getElementById("calibrate-mouth-btn");
 
+    // Smart Features controls
+    elements.smartFeaturesEnabled = document.getElementById(
+      "smart-features-enabled",
+    );
+
     console.log("[Sidepanel] DOM elements retrieved:", {
       displayMode: elements.displayMode,
       radioSummarization: elements.radioSummarization,
@@ -105,7 +111,9 @@ async function loadSettings() {
     "gazeEnabled",
     "gazeDwellMs",
     "mouthClickEnabled",
+    "mouthClickEnabled",
     "mouthCalV1",
+    "smartFeaturesEnabled",
   ]);
 
   if (stored.apiChoice) settings.apiChoice = stored.apiChoice;
@@ -115,6 +123,8 @@ async function loadSettings() {
     settings.gazeEnabled = stored.gazeEnabled;
   if (typeof stored.gazeDwellMs === "number")
     settings.gazeDwellMs = stored.gazeDwellMs;
+  if (typeof stored.smartFeaturesEnabled === "boolean")
+    settings.smartFeaturesEnabled = stored.smartFeaturesEnabled;
 
   // Update UI
   if (elements.radioSummarization && elements.radioPrompt) {
@@ -169,6 +179,12 @@ async function loadSettings() {
   // Update mouth calibration status
   updateMouthStatus(!!stored.mouthCalV1);
 
+  updateMouthStatus(!!stored.mouthCalV1);
+
+  if (elements.smartFeaturesEnabled) {
+    elements.smartFeaturesEnabled.checked = settings.smartFeaturesEnabled;
+  }
+
   togglePromptContainer();
 }
 
@@ -180,6 +196,7 @@ async function saveSettings() {
     displayMode: settings.displayMode,
     gazeEnabled: settings.gazeEnabled,
     gazeDwellMs: settings.gazeDwellMs,
+    smartFeaturesEnabled: settings.smartFeaturesEnabled,
   });
 }
 
@@ -372,7 +389,32 @@ function setupEventListeners() {
         elements.dwellValue.textContent = value;
       }
       saveSettings();
-      console.log("[Sidepanel] Dwell time updated:", value);
+    });
+  }
+
+  // Smart Features toggle
+  if (elements.smartFeaturesEnabled) {
+    elements.smartFeaturesEnabled.addEventListener("change", (e) => {
+      settings.smartFeaturesEnabled = e.target.checked;
+      saveSettings();
+      console.log(
+        "[Sidepanel] Smart features toggled:",
+        settings.smartFeaturesEnabled,
+      );
+
+      // Notify content script
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+          chrome.tabs
+            .sendMessage(tabs[0].id, {
+              type: "SMART_FEATURES_TOGGLE",
+              enabled: settings.smartFeaturesEnabled,
+            })
+            .catch(() => {
+              // Ignore if content script not ready
+            });
+        }
+      });
     });
   }
 }

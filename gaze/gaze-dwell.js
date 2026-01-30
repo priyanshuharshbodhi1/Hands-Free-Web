@@ -19,6 +19,7 @@
   const DWELL_INDICATOR_ID = "gaze-dwell-indicator";
 
   let gazeEnabled = false;
+  let smartFeaturesEnabled = true; // PARAMETER (State of Smart Features)
   let dwellThreshold = DEFAULT_DWELL_MS;
   let phase = "ready";
   let tooltip = null;
@@ -506,6 +507,7 @@
   }
 
   function snapLink(x, y) {
+    if (!smartFeaturesEnabled) return null; // PARAMETER (Disable magnetic snap if smart features off)
     if (snappedLink && !document.contains(snappedLink)) {
       snappedLink = null;
     }
@@ -529,6 +531,7 @@
   }
 
   function snapTarget(x, y) {
+    if (!smartFeaturesEnabled) return null; // PARAMETER (Disable magnetic snap if smart features off)
     // Check if current snapped target is still valid
     if (
       snappedTarget &&
@@ -769,6 +772,7 @@
     if (!link || !link.href) {
       return;
     }
+    if (!smartFeaturesEnabled) return; // PARAMETER (Disable AI summary if smart features off)
     const url = normalizeUrl(link.href);
     if (!url) {
       return;
@@ -1096,6 +1100,18 @@
         renderProcessing();
       }
     }
+
+    if (message.type === "SMART_FEATURES_TOGGLE") {
+      smartFeaturesEnabled = Boolean(message.enabled);
+      if (!smartFeaturesEnabled) {
+        snappedLink = null;
+        snappedTarget = null;
+        hideTooltip();
+        if (currentJob) {
+          currentJob = null;
+        }
+      }
+    }
   }
 
   function handleStorageChange(changes, area) {
@@ -1207,14 +1223,20 @@
     window.addEventListener("scroll", handleScroll, true);
     window.addEventListener("resize", handleScroll);
 
-    chrome.storage.local.get(["gazeEnabled", "gazeDwellMs"], (result) => {
-      gazeEnabled = Boolean(result && result.gazeEnabled);
-      const dwell =
-        result && typeof result.gazeDwellMs === "number"
-          ? result.gazeDwellMs
-          : DEFAULT_DWELL_MS;
-      dwellThreshold = dwell >= 200 ? dwell : DEFAULT_DWELL_MS;
-    });
+    chrome.storage.local.get(
+      ["gazeEnabled", "gazeDwellMs", "smartFeaturesEnabled"],
+      (result) => {
+        gazeEnabled = Boolean(result && result.gazeEnabled);
+        if (result && typeof result.smartFeaturesEnabled === "boolean") {
+          smartFeaturesEnabled = result.smartFeaturesEnabled;
+        }
+        const dwell =
+          result && typeof result.gazeDwellMs === "number"
+            ? result.gazeDwellMs
+            : DEFAULT_DWELL_MS;
+        dwellThreshold = dwell >= 200 ? dwell : DEFAULT_DWELL_MS;
+      },
+    );
   }
 
   function formatAISummary(text) {
