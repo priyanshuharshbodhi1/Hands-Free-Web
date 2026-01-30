@@ -4,7 +4,7 @@
 
 HandsFreeWeb makes the web accessible to everyone by combining computer vision-based head tracking with Chrome's Built-in AI to enable completely hands-free browsing and instant link summaries.
 
-![HandsFreeWeb Banner](./screenshot.png)
+![HandsFreeWeb Banner](./nutshell.png)
 
 ---
 
@@ -15,19 +15,21 @@ HandsFreeWeb showcases the power of **Chrome's Built-in AI APIs** by bringing so
 ### 🎯 Chrome AI Features Utilized
 
 #### **1. Summarizer API** ⭐ Primary Feature
+
 - **Streaming summarization** with `summarizeStreaming()` for real-time updates
 - Configurable summary types: `key-points`, `tl;dr`, `teaser`, `headline`
 - Markdown-formatted output with adjustable length
 - **100% on-device processing** with Gemini Nano
 
 **Implementation Highlight:**
+
 ```javascript
 const summarizer = await ai.summarizer.create({
-  type: 'key-points',
-  format: 'markdown',
-  length: 'medium',
-  sharedContext: 'This is an article from a webpage.',
-  outputLanguage: 'en'
+  type: "key-points",
+  format: "markdown",
+  length: "medium",
+  sharedContext: "This is an article from a webpage.",
+  outputLanguage: "en",
 });
 
 const stream = summarizer.summarizeStreaming(processedText);
@@ -38,14 +40,16 @@ for await (const chunk of stream) {
 ```
 
 #### **2. Prompt API** ⭐ Advanced Custom Prompting
+
 - **Specialized content processing** for YouTube
 - Custom system prompts for context-aware summarization
 - Streaming responses with `promptStreaming()`
 
 **Example - YouTube Video Summaries:**
+
 ```javascript
 const session = await ai.languageModel.create({
-  expectedOutputs: [{ type: 'text', languages: ['en'] }]
+  expectedOutputs: [{ type: "text", languages: ["en"] }],
 });
 
 const prompt = `Analyze this YouTube video and create a structured summary:
@@ -61,12 +65,14 @@ const stream = session.promptStreaming(prompt);
 ### 🌟 Why Chrome Built-in AI?
 
 **Privacy by Design:**
+
 - ✅ Zero data sent to external servers
 - ✅ Camera feed processed locally with Human.js
 - ✅ AI runs entirely in browser with Gemini Nano
 - ✅ Perfect for users with disabilities who need privacy-respecting tools
 
 **Accessibility at Scale:**
+
 - ✅ No expensive hardware ($0 vs. $10,000+ for eye-gaze systems)
 - ✅ No cloud API costs
 - ✅ Instant responses (no network latency)
@@ -86,6 +92,7 @@ See HandsFreeWeb in action - browse Wikipedia entirely hands-free and get AI-pow
 ## 🌟 The Problem
 
 For millions of people with mobility impairments, ALS, cerebral palsy, RSI, or temporary disabilities, using a traditional mouse and keyboard is painful, difficult, or impossible. Existing assistive technologies often:
+
 - Cost $10,000+ for eye-gaze systems
 - Require specialized hardware and setup
 - Send data to cloud servers (privacy concerns)
@@ -102,24 +109,28 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
 ### 1. 🎯 Complete Hands-Free Control
 
 **Head Tracking:**
+
 - Look left/right → cursor moves horizontally
 - Tilt up/down → cursor moves vertically
 - Uses One-Euro filter for smooth, jitter-free movement
 - Personalized calibration adapts to your natural range
 
 **Mouth-Open Clicking:**
+
 - Open mouth → triggers click
 - Calibrated to your facial structure
 - 800ms cooldown prevents accidental double-clicks
 - Real-time visual feedback
 
 **Dwell-Based Interaction:**
+
 - Hover on links → automatic activation
 - Visual progress indicator (growing ring)
 - Magnetic snapping to nearby clickables (45px radius)
 - Configurable timing (300-1500ms)
 
 **Smart Navigation Zones:**
+
 - Look top/bottom → auto-scroll (180px zones)
 - Look left edge → browser back (80px zone)
 - Look right edge → browser forward (80px zone)
@@ -128,10 +139,12 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
 ### 2. 🤖 AI-Powered Link Previews
 
 **Chrome's Built-in AI** generates instant summaries for:
+
 - 📄 **Web articles** - Clean, concise key points
 - 🎥 **YouTube videos** - Summarized from captions + description
 
 **Special Feature: YouTube Caption Extraction**
+
 - Intercepts XHR requests for captions
 - Supports JSON3 (new) and XML (legacy) formats
 - Combines transcript + description for better context
@@ -144,6 +157,7 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
 ## ✨ Key Features
 
 ### Hands-Free Control
+
 - 🎯 **Head tracking** cursor control (no hands required)
 - 👄 **Mouth-open clicking** with calibration
 - ⏱️ **Dwell activation** (hover to click)
@@ -152,6 +166,7 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
 - ⬅️➡️ **Browser navigation** zones (left/right edges)
 
 ### AI Summaries
+
 - 🤖 **On-device AI** (Gemini Nano via Chrome)
 - 📺 **YouTube caption** extraction & summarization
 - ⚡ **Real-time streaming** updates
@@ -159,6 +174,7 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
 - 🎨 **Dual display** (tooltip + side panel)
 
 ### Customization
+
 - 🎚️ **Adjustable dwell time** (300-1500ms)
 - 🎯 **Head calibration** (5-point personalization)
 - 👄 **Mouth calibration** (adaptive thresholds)
@@ -166,6 +182,7 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
 - ⚙️ **API choice** (Summarizer or custom Prompt)
 
 ### Privacy & Performance
+
 - 🔒 **100% local processing** (no external servers)
 - 📷 **Webcam-based** (any standard camera)
 - ⚡ **GPU-accelerated** tracking (WebGL)
@@ -198,6 +215,7 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
 ### Install Extension
 
 1. **Clone repository:**
+
    ```bash
    git clone https://github.com/yourusername/handsfree-web.git
    cd handsfree-web
@@ -221,12 +239,14 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
 ### First-Time Setup
 
 #### 1. **Enable Head Tracking**
+
 - Open HandsFreeWeb side panel (click extension icon)
 - Toggle **"Enable Head Tracking"**
 - Grant camera permission
 - Wait for face detection models to load
 
 #### 2. **Calibrate Head Control**
+
 - Click **"Calibrate Head Tracking"** (or press `Alt+H`)
 - Follow 5-point calibration:
   1. Look at CENTER → press SPACE
@@ -237,6 +257,7 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
 - Cursor now follows your head! 🎉
 
 #### 3. **Calibrate Mouth Clicking** (Optional)
+
 - Toggle **"Enable Mouth Click"**
 - Click **"Calibrate Mouth Click"** (or press `Alt+M`)
 - Keep mouth closed when prompted
@@ -253,11 +274,11 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
 
 ### Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Alt+H` | Calibrate head tracking |
-| `Alt+M` | Calibrate mouth clicking |
-| `Esc` | Cancel active summary |
+| Shortcut | Action                   |
+| -------- | ------------------------ |
+| `Alt+H`  | Calibrate head tracking  |
+| `Alt+M`  | Calibrate mouth clicking |
+| `Esc`    | Cancel active summary    |
 
 ---
 
@@ -266,23 +287,27 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
 ### Tech Stack
 
 #### Computer Vision
+
 - **[Human.js](https://github.com/vladmandic/human)** - 468-point facial landmark detection
 - **One-Euro Filter** - Jitter elimination (fc=0.4, β=0.0025)
 - **Adaptive Smoothing** - Lerp interpolation (0.06 center, 0.10 edge)
 - **WebGL Acceleration** - GPU-based processing
 
 #### AI Integration
+
 - **Chrome Summarizer API** - Key-point extraction, markdown formatting
 - **Chrome Prompt API** - Custom prompting for specialized content
 - **Gemini Nano** - On-device language model
 - **Streaming Responses** - Real-time character-by-character updates
 
 #### Content Extraction
+
 - **Readability.js** - Mozilla's article extraction
 - **XHR Interception** - YouTube caption capture
 - **Smart Truncation** - Beginning/middle/end preservation for long content
 
 #### Browser Integration
+
 - **Manifest V3** - Modern extension architecture
 - **Side Panel API** - Dedicated control interface
 - **Content Scripts** - Page interaction & tooltip rendering
@@ -291,6 +316,7 @@ Meanwhile, browsing the web means clicking countless links just to preview conte
 ### How It Works
 
 #### Head Tracking Pipeline
+
 ```
 Webcam Feed → Human.js (Face Detection) → Facial Landmarks (468 points)
 → Head Pose Estimation (pitch/yaw) → One-Euro Filter (smoothing)
@@ -298,6 +324,7 @@ Webcam Feed → Human.js (Face Detection) → Facial Landmarks (468 points)
 ```
 
 #### AI Summary Pipeline
+
 ```
 Link Hover (600ms) → Fetch Page HTML → Readability.js (Extract Content)
 → Smart Truncation (fit context) → Chrome Summarizer/Prompt API
@@ -305,6 +332,7 @@ Link Hover (600ms) → Fetch Page HTML → Readability.js (Extract Content)
 ```
 
 #### YouTube Special Pipeline
+
 ```
 Page Load → Inject XHR Interceptor → Monitor Network Requests
 → Capture Caption Response (JSON/XML) → Parse Timestamps & Text
@@ -351,6 +379,7 @@ handsfree-web/
 ### Debug Mode
 
 Enable logging in respective files:
+
 - `content.js`: `const DEBUG_ENABLED = true`
 - `gaze-dwell.js`: `const DEBUG_DWELL = true`
 
@@ -361,21 +390,21 @@ Open DevTools console on any page:
 ```javascript
 // Check Summarizer API
 const summarizerStatus = await ai.summarizer.availability();
-console.log('Summarizer:', summarizerStatus);
+console.log("Summarizer:", summarizerStatus);
 
 // Check Prompt API
 const promptStatus = await ai.languageModel.availability();
-console.log('Prompt API:', promptStatus);
+console.log("Prompt API:", promptStatus);
 
 // Test summarization
-if (summarizerStatus === 'readily') {
+if (summarizerStatus === "readily") {
   const summarizer = await ai.summarizer.create({
-    type: 'key-points',
-    format: 'markdown',
-    length: 'short'
+    type: "key-points",
+    format: "markdown",
+    length: "short",
   });
 
-  const result = await summarizer.summarize('Your text here...');
+  const result = await summarizer.summarize("Your text here...");
   console.log(result);
 }
 ```
@@ -383,6 +412,7 @@ if (summarizerStatus === 'readily') {
 ### Performance Monitoring
 
 Check browser console for:
+
 - Frame processing times (target: 30fps)
 - AI streaming latency
 - Cache hit rates
@@ -393,24 +423,28 @@ Check browser console for:
 ## 🐛 Troubleshooting
 
 ### AI Not Working
+
 - ✅ Verify Chrome flags enabled (see Installation)
 - ✅ Check API status: `await ai.summarizer.availability()`
 - ✅ Wait for model download (~5 min first time)
 - ✅ Restart Chrome after enabling flags
 
 ### Head Tracking Issues
+
 - ✅ Good lighting (front-facing light works best)
 - ✅ Camera permissions granted
 - ✅ Recalibrate if cursor feels off
 - ✅ Keep torso stable, move head not body
 
 ### Cursor Jittery
+
 - ✅ Recalibrate head tracking
 - ✅ Improve lighting conditions
 - ✅ Ensure stable seated position
 - ✅ Adjust `HEAD_FILTER_MIN_CUTOFF` in `gaze-core.js`
 
 ### Mouth Clicks Not Working
+
 - ✅ Recalibrate mouth detection
 - ✅ Ensure camera sees mouth clearly
 - ✅ Toggle "Enable Mouth Click" on
@@ -420,37 +454,40 @@ Check browser console for:
 
 ## 📊 Technical Specifications
 
-| Feature | Specification |
-|---------|--------------|
-| **AI Model** | Gemini Nano (Chrome Built-in) |
-| **Face Detection** | 468-point facial landmarks (Human.js) |
-| **Signal Filter** | One-Euro (fc=0.4, β=0.0025, d_cutoff=1.0) |
-| **Smoothing** | Adaptive lerp (0.06 center, 0.10 edge) |
-| **Dwell Time** | 600ms default (300-1500ms range) |
-| **Click Cooldown** | 800ms (mouth-open) |
-| **Snap Radius** | 45px magnetic targeting |
-| **Scroll Zones** | 180px top/bottom edges |
-| **Nav Zones** | 80px left/right edges |
-| **Cache TTL** | 30 minutes |
-| **Max Content** | 4000 chars (Summarizer), 3000 chars (Prompt) |
+| Feature            | Specification                                |
+| ------------------ | -------------------------------------------- |
+| **AI Model**       | Gemini Nano (Chrome Built-in)                |
+| **Face Detection** | 468-point facial landmarks (Human.js)        |
+| **Signal Filter**  | One-Euro (fc=0.4, β=0.0025, d_cutoff=1.0)    |
+| **Smoothing**      | Adaptive lerp (0.06 center, 0.10 edge)       |
+| **Dwell Time**     | 600ms default (300-1500ms range)             |
+| **Click Cooldown** | 800ms (mouth-open)                           |
+| **Snap Radius**    | 45px magnetic targeting                      |
+| **Scroll Zones**   | 180px top/bottom edges                       |
+| **Nav Zones**      | 80px left/right edges                        |
+| **Cache TTL**      | 30 minutes                                   |
+| **Max Content**    | 4000 chars (Summarizer), 3000 chars (Prompt) |
 
 ---
 
 ## 🌍 Use Cases
 
 ### Accessibility
+
 - ♿ Users with mobility impairments (paralysis, ALS, cerebral palsy)
 - 🤕 Repetitive strain injury (RSI) prevention/management
 - 🩹 Temporary disabilities (broken arm, surgery recovery)
 - 🧠 Alternative input for motor control challenges
 
 ### Productivity
+
 - 📝 Hands-free research while taking notes
 - 🍕 Browse while eating or multitasking
 - 💻 Second screen setups
 - ⚡ Quick link previews without navigation
 
 ### Research & Learning
+
 - 📚 Wikipedia exploration
 - 📄 Academic paper browsing
 - 📰 News aggregation
@@ -461,6 +498,7 @@ Check browser console for:
 ## 🙏 Acknowledgments
 
 Built with amazing open-source tools:
+
 - **[Human.js](https://github.com/vladmandic/human)** by Vladimir Mandic - Face tracking
 - **[Readability.js](https://github.com/mozilla/readability)** by Mozilla - Content extraction
 - **Chrome Built-in AI** by Google - On-device AI with Gemini Nano
@@ -499,8 +537,8 @@ Built for the Chrome Built-in AI Hackathon! Contributions welcome:
 
 **Made with ❤️ for the Chrome Built-in AI Hackathon**
 
-*Empowering digital independence through on-device AI*
+_Empowering digital independence through on-device AI_
 
-🥜 *In a handsfree-web: Browse hands-free, understand faster.*
+🥜 _In a handsfree-web: Browse hands-free, understand faster._
 
 </div>
