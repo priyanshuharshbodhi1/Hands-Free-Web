@@ -3105,23 +3105,65 @@
     // 1. Get Page Content
     let context = "";
     try {
-      // Use Readability
       const documentClone = document.cloneNode(true);
       const reader = new Readability(documentClone);
       const article = reader.parse();
       context = article ? article.textContent : document.body.innerText;
-      // Truncate for API limits
-      context = context.substring(0, 8000);
+      context = context.substring(0, 6000); // Groq handles less context well
     } catch (e) {
-      context = document.body.innerText.substring(0, 5000);
+      context = document.body.innerText.substring(0, 4000);
     }
 
-    const prompt = `Context from current webpage:\n${context}\n\nUser Question: ${question}\n\nAnswer concisely based on the context:`;
+    const systemPrompt =
+      "You are a helpful assistant that answers questions about webpage content. Be concise and direct.";
+    const userPrompt = `Context from current webpage:\n${context}\n\nQuestion: ${question}`;
 
-    // 2. Try Gemini Cloud API first (gemini-2.0-flash-lite is free)
+    // 2. Try Groq API first (blazing fast - llama-3.3-70b)
+    if (ENV && ENV.GROQ_API_KEY) {
+      try {
+        showFloatingCard("⚡ Groq AI...", question);
+        const response = await fetch(
+          "https://api.groq.com/openai/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${ENV.GROQ_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "llama-3.3-70b-versatile",
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt },
+              ],
+              max_tokens: 500,
+              temperature: 0.7,
+            }),
+          },
+        );
+
+        const data = await response.json();
+
+        if (response.ok && data.choices?.[0]?.message?.content) {
+          const answer = data.choices[0].message.content;
+          showFloatingCard("🤖 AI Answer", answer, true);
+          return;
+        } else {
+          console.warn(
+            "Groq API failed:",
+            data?.error?.message || "Unknown error",
+          );
+        }
+      } catch (e) {
+        console.warn("Groq API error:", e);
+      }
+    }
+
+    // 3. Fallback to Gemini Cloud API
     if (ENV && ENV.GEMINI_API_KEY) {
       try {
         showFloatingCard("☁️ Gemini API...", question);
+        const prompt = `${systemPrompt}\n\n${userPrompt}`;
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${ENV.GEMINI_API_KEY}`,
           {
@@ -3129,62 +3171,46 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               contents: [{ parts: [{ text: prompt }] }],
-              generationConfig: {
-                maxOutputTokens: 500,
-                temperature: 0.7,
-              },
+              generationConfig: { maxOutputTokens: 500, temperature: 0.7 },
             }),
           },
         );
 
         const data = await response.json();
-
         if (response.ok) {
           const answer =
-            data.candidates?.[0]?.content?.parts?.[0]?.text ||
-            "No answer generated.";
-          showFloatingCard("🤖 Gemini Answer", answer, true);
+            data.candidates?.[0]?.content?.parts?.[0]?.text || "No answer.";
+          showFloatingCard("🤖 AI Answer", answer, true);
           return;
-        } else {
-          // Show specific error message
-          const errorMsg = data?.error?.message || "Unknown error";
-          console.warn("Gemini API failed:", errorMsg);
-          if (errorMsg.includes("quota") || errorMsg.includes("exceeded")) {
-            showFloatingCard(
-              "⚠️ Quota Exceeded",
-              "Daily API limit reached. Try again tomorrow or enable Gemini Nano in chrome://flags",
-              false,
-            );
-            return;
-          }
-          // Try fallback to Nano
         }
       } catch (e) {
-        console.warn("Gemini API error, trying Nano...", e);
+        console.warn("Gemini API error:", e);
       }
     }
 
-    // 3. Fallback to Chrome Built-in AI (Gemini Nano)
+    // 4. Final fallback to Chrome Built-in AI (Gemini Nano)
     try {
       showFloatingCard("🧠 Local AI...", question);
       const ai = window.ai || window.model;
       if (!ai || !ai.languageModel) {
         showFloatingCard(
           "Error",
-          "No AI available. Add GEMINI_API_KEY to env.js or enable chrome://flags/#prompt-api-for-gemini-nano",
+          "No AI available. Add GROQ_API_KEY or GEMINI_API_KEY to env.js",
         );
         return;
       }
 
       const session = await ai.languageModel.create();
-      const stream = session.promptStreaming(prompt);
+      const stream = session.promptStreaming(
+        `${systemPrompt}\n\n${userPrompt}`,
+      );
       let fullResponse = "";
       for await (const chunk of stream) {
         fullResponse = chunk;
-        showFloatingCard("🤖 Gemini Answer", fullResponse, true);
+        showFloatingCard("🤖 AI Answer", fullResponse, true);
       }
     } catch (e) {
-      console.error("Gemini Nano Error:", e);
+      console.error("Local AI Error:", e);
       showFloatingCard("Error", "AI failed. " + e.message);
     }
   }
