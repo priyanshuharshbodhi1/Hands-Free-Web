@@ -2668,7 +2668,8 @@
         #handsfree-mic-btn {
           position: fixed;
           bottom: 20px;
-          right: calc(120px + 3rem);
+          left: 50%;
+          transform: translateX(-50%);
           width: 60px;
           height: 60px;
           border-radius: 50%;
@@ -2685,7 +2686,7 @@
           backdrop-filter: blur(10px);
         }
         #handsfree-mic-btn:hover {
-          transform: scale(1.08);
+          transform: translateX(-50%) scale(1.08);
         }
         #handsfree-mic-btn.idle {
           animation: breathe 3s ease-in-out infinite;
@@ -2732,7 +2733,8 @@
         #handsfree-mic-status {
           position: fixed;
           bottom: 90px;
-          right: 90px;
+          left: 50%;
+          transform: translateX(-50%) translateY(10px);
           background: rgba(0, 0, 0, 0.85);
           color: white;
           padding: 10px 16px;
@@ -2742,7 +2744,6 @@
           font-weight: 500;
           z-index: 2147483647;
           opacity: 0;
-          transform: translateY(10px);
           transition: all 0.3s ease;
           pointer-events: none;
           max-width: 200px;
@@ -2750,7 +2751,55 @@
         }
         #handsfree-mic-status.visible {
           opacity: 1;
-          transform: translateY(0);
+          transform: translateX(-50%) translateY(0);
+        }
+        #handsfree-transcription-popup {
+          position: fixed;
+          bottom: 100px;
+          left: 50%;
+          transform: translateX(-50%) translateY(20px);
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
+          color: #1f2937;
+          padding: 16px 20px;
+          padding-right: 40px;
+          border-radius: 16px;
+          font-family: system-ui, -apple-system, sans-serif;
+          font-size: 14px;
+          line-height: 1.5;
+          z-index: 2147483647;
+          opacity: 0;
+          transition: all 0.3s ease;
+          max-width: 400px;
+          min-width: 200px;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+          pointer-events: none;
+        }
+        #handsfree-transcription-popup.visible {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+          pointer-events: auto;
+        }
+        #handsfree-transcription-popup .close-btn {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          width: 24px;
+          height: 24px;
+          border: none;
+          background: rgba(0,0,0,0.1);
+          border-radius: 50%;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 14px;
+          color: #6b7280;
+          transition: all 0.2s;
+        }
+        #handsfree-transcription-popup .close-btn:hover {
+          background: rgba(0,0,0,0.2);
+          color: #1f2937;
         }
       `;
       document.head.appendChild(style);
@@ -2773,6 +2822,18 @@
     const status = document.createElement("div");
     status.id = "handsfree-mic-status";
     document.body.appendChild(status);
+
+    // Create transcription popup
+    const popup = document.createElement("div");
+    popup.id = "handsfree-transcription-popup";
+    popup.innerHTML = `
+      <button class="close-btn" title="Close">✕</button>
+      <div class="content"></div>
+    `;
+    popup.querySelector(".close-btn").addEventListener("click", () => {
+      popup.classList.remove("visible");
+    });
+    document.body.appendChild(popup);
   }
 
   async function toggleTranscription() {
@@ -3016,6 +3077,14 @@
     }
   }
 
+  function showTranscriptionPopup(text) {
+    const popup = document.getElementById("handsfree-transcription-popup");
+    if (popup) {
+      popup.querySelector(".content").textContent = text;
+      popup.classList.add("visible");
+    }
+  }
+
   async function transcribeAudio(audioBlob) {
     if (!ENV || !ENV.ELEVEN_LABS_API_KEY) {
       console.error("ElevenLabs API Key not found in ENV");
@@ -3054,13 +3123,19 @@
       const data = await response.json();
       console.log("Transcription result:", data);
 
-      // Send text to sidebar
+      const transcribedText = data.text || "No speech detected.";
+
+      // Show in popup above mic button
+      showTranscriptionPopup(transcribedText);
+
+      // Also send to sidebar
       chrome.runtime.sendMessage({
         type: "TRANSCRIPTION_RESULT",
-        text: data.text || "No speech detected.",
+        text: transcribedText,
       });
     } catch (error) {
       console.error("Transcription error:", error);
+      showTranscriptionPopup("Error: " + error.message);
       chrome.runtime.sendMessage({
         type: "TRANSCRIPTION_RESULT",
         text: "Error: " + error.message,

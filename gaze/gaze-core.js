@@ -10,10 +10,10 @@
   const HUMAN_MODULE_PATH = "gaze/human/human.esm.js";
   const HUMAN_MODELS_DIR = "gaze/human/models/";
   const POINT_THROTTLE_MS = 33;
-  const HEAD_FILTER_MIN_CUTOFF = 1.5; // PARAMETER (Jitter reduction - Higher = MOST responsive. 1.5 = Instant/Raw)
+  const HEAD_FILTER_MIN_CUTOFF = 0.5; // PARAMETER (Jitter reduction - Higher = MOST responsive. 1.5 = Instant/Raw)
   const HEAD_FILTER_BETA = 0.0025;
   const HEAD_FILTER_D_CUTOFF = 1.0;
-  const HEAD_POINTER_LERP = 0.4; // PARAMETER (Cursor responsiveness - 0.4 = Balanced smoothing)
+  const HEAD_POINTER_LERP = 0.15; // PARAMETER (Cursor responsiveness - 0.4 = Balanced smoothing)
   const HEAD_TRANSLATION_GAIN = 1;
   const HEAD_ROTATION_INFLUENCE = 0.22;
   const HEAD_ROTATION_EDGE_GAIN = 0.35;
@@ -24,8 +24,8 @@
   const PITCH_FALLBACK_THRESHOLD = 0.32;
   const TRANSLATION_MIN_RATIO = 0.24;
   const VERTICAL_EDGE_SCALE = 1.35;
-  const HEAD_YAW_SCALE = 25; // PARAMETER (Horizontal Sensitivity - 25 = Balanced speed)
-  const HEAD_PITCH_SCALE = 20; // PARAMETER (Vertical Sensitivity - 20 = Balanced speed)
+  const HEAD_YAW_SCALE = 20; // PARAMETER (Horizontal Sensitivity - 25 = Balanced speed)
+  const HEAD_PITCH_SCALE = 12; // PARAMETER (Vertical Sensitivity - 20 = Balanced speed)
   const BLINK_LEFT_THRESHOLD_MS = 1000;
   const BLINK_RIGHT_THRESHOLD_MS = 2000;
   const MOUTH_CALIBRATION_SAMPLES = 30; // Samples to collect for mouth calibration
