@@ -2668,7 +2668,7 @@
         #handsfree-mic-btn {
           position: fixed;
           bottom: 20px;
-          right: 140px;
+          right: calc(120px + 3rem);
           width: 60px;
           height: 60px;
           border-radius: 50%;
@@ -3118,12 +3118,12 @@
 
     const prompt = `Context from current webpage:\n${context}\n\nUser Question: ${question}\n\nAnswer concisely based on the context:`;
 
-    // 2. Try Gemini Cloud API first (gemini-1.5-flash is free)
+    // 2. Try Gemini Cloud API first (gemini-2.0-flash-lite is free)
     if (ENV && ENV.GEMINI_API_KEY) {
       try {
         showFloatingCard("☁️ Gemini API...", question);
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${ENV.GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${ENV.GEMINI_API_KEY}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -3137,18 +3137,27 @@
           },
         );
 
+        const data = await response.json();
+
         if (response.ok) {
-          const data = await response.json();
           const answer =
             data.candidates?.[0]?.content?.parts?.[0]?.text ||
             "No answer generated.";
           showFloatingCard("🤖 Gemini Answer", answer, true);
           return;
         } else {
-          console.warn(
-            "Gemini API failed, trying Nano...",
-            await response.text(),
-          );
+          // Show specific error message
+          const errorMsg = data?.error?.message || "Unknown error";
+          console.warn("Gemini API failed:", errorMsg);
+          if (errorMsg.includes("quota") || errorMsg.includes("exceeded")) {
+            showFloatingCard(
+              "⚠️ Quota Exceeded",
+              "Daily API limit reached. Try again tomorrow or enable Gemini Nano in chrome://flags",
+              false,
+            );
+            return;
+          }
+          // Try fallback to Nano
         }
       } catch (e) {
         console.warn("Gemini API error, trying Nano...", e);
