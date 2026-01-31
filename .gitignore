@@ -54,3 +54,6 @@ build/
 .env
 .env.local
 .env.*.local
+
+/env.js
+env.js

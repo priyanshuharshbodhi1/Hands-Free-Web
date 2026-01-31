@@ -2643,7 +2643,7 @@
     btn.style.cssText = `
        position: fixed;
        bottom: 20px;
-       left: 20px;
+       right: 20px;
        width: 56px;
        height: 56px;
        border-radius: 50%;
@@ -2705,7 +2705,7 @@
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: "audio/webm" }); // Chrome supports webm
+        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
         isRecording = false;
         updateMicButtonState(false);
         stopSilenceDetection();
@@ -2713,8 +2713,20 @@
         // Notify sidebar
         chrome.runtime.sendMessage({ type: "TRANSCRIPTION_RECORDING_STOPPED" });
 
-        // Upload to 11Labs
-        await transcribeAudio(audioBlob);
+        // Show processing indicator
+        showStatusToast("🔄 Processing audio...");
+
+        // Route based on mode
+        if (micMode === "qa") {
+          const text = await performSTT(audioBlob);
+          if (text) {
+            handleQA(text);
+          }
+        } else {
+          // Standard Transcription
+          await transcribeAudio(audioBlob);
+        }
+        hideStatusToast();
       };
 
       mediaRecorder.start();
@@ -2868,6 +2880,49 @@
     }
   }
 
+  // Status Toast for visual feedback
+  let statusToast = null;
+  function showStatusToast(message) {
+    if (!statusToast) {
+      statusToast = document.createElement("div");
+      statusToast.id = "handsfree-status-toast";
+      statusToast.style.cssText = `
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 25px;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 2147483647;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+        opacity: 0;
+        transform: translateY(10px);
+      `;
+      document.body.appendChild(statusToast);
+    }
+    statusToast.textContent = message;
+    statusToast.style.display = "block";
+    requestAnimationFrame(() => {
+      statusToast.style.opacity = "1";
+      statusToast.style.transform = "translateY(0)";
+    });
+  }
+
+  function hideStatusToast() {
+    if (statusToast) {
+      statusToast.style.opacity = "0";
+      statusToast.style.transform = "translateY(10px)";
+      setTimeout(() => {
+        if (statusToast) statusToast.style.display = "none";
+      }, 300);
+    }
+  }
+
   // Separate STT function for internal use (Q&A) to get text back
   async function performSTT(audioBlob) {
     if (!ENV || !ENV.ELEVEN_LABS_API_KEY) {
@@ -2955,7 +3010,7 @@
       floatingCard.style.cssText = `
            position: fixed;
            bottom: 100px;
-           left: 30px;
+           right: 20px;
            width: 320px;
            background: rgba(255, 255, 255, 0.95);
            backdrop-filter: blur(10px);
