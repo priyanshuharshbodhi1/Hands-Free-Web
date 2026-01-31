@@ -71,6 +71,7 @@
   let silenceThreshold = 0.02; // Adjust based on testing
 
   const SILENCE_DURATION = 2000; // 2 seconds
+  let recordingStartTime = 0; // Track when recording started
   let micMode = "transcription"; // 'transcription' | 'qa'
   let qaSession = null; // For Gemini Nano
 
@@ -2755,13 +2756,15 @@
       // Start with timeslice to ensure data is captured in chunks
       mediaRecorder.start(250); // capture every 250ms
       isRecording = true;
+      recordingStartTime = Date.now(); // Track when recording started
+      silenceStart = Date.now(); // Reset silence timer
       updateMicButtonState(true);
 
       // Notify sidebar
       chrome.runtime.sendMessage({ type: "TRANSCRIPTION_RECORDING_STARTED" });
 
-      // Start Silence Detection Loop
-      checkSilence(dataArray, bufferLength);
+      // Start Silence Detection Loop (with delay to let audio stabilize)
+      setTimeout(() => checkSilence(dataArray, bufferLength), 500);
     } catch (err) {
       console.error("Error accessing microphone:", err);
       alert("Could not access microphone. Please allow permission.");
@@ -2793,10 +2796,21 @@
     const rms = Math.sqrt(sum / bufferLength);
 
     // Threshold can be tweaked. 0.02 is checking for very low volume.
+    // Require minimum 1.5 seconds of recording before allowing silence stop
+    const minRecordingTime = 1500;
+    const recordingDuration = Date.now() - recordingStartTime;
+
     if (rms < silenceThreshold) {
-      if (Date.now() - silenceStart > SILENCE_DURATION) {
-        // Silence detected for 2 seconds
-        console.log("Silence detected, stopping recording...");
+      if (
+        recordingDuration > minRecordingTime &&
+        Date.now() - silenceStart > SILENCE_DURATION
+      ) {
+        // Silence detected for 2 seconds (after minimum recording time)
+        console.log(
+          "Silence detected, stopping recording... Duration:",
+          recordingDuration,
+          "ms",
+        );
         stopRecording();
         return;
       }
